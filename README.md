@@ -11,6 +11,7 @@ Title Screen --> Song Selection --> Difficulty --> Gameplay
 (UP/DOWN) (Easy/Normal/Hard/Master/Ultra) (F/J)
 
 =========================================
+
 [ SCORING SYSTEM ]
 
 PERFECT (< 0.15 sec) = 100 points x (1 + Combo/10)
@@ -20,6 +21,7 @@ MISS (> 0.50 sec) = 0 points, Combo breaks
 ROLL (each hit) = 10 points, Combo continues
 
 =========================================
+
 [ CONTROLS ]
 
 [F] = Red Drum (DON)
