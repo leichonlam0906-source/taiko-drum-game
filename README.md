@@ -1,34 +1,37 @@
 # Taiko Drum Game
 
 ## Graphical Abstract
-+-----------------------------------------------------------------------------+
-| TAIKO DRUM GAME |
-+-----------------------------------------------------------------------------+
-| |
-| +-------------+ +-------------+ +-------------+ +----------+ |
-| | Title | | Song | | Difficulty | | Game | |
-| | Screen | --> | Selection | --> | Selection | --> | Play | |
-| +-------------+ +-------------+ +-------------+ +----------+ |
-| |
-| +-----------------------------------------------------------------------+ |
-| | SCORING SYSTEM | |
-| +-----------------------------------------------------------------------+ |
-| | PERFECT (<0.15s) +100 GOOD (<0.30s) +50 OK (<0.50s) +10 | |
-| | MISS (>0.50s) +0 ROLL (each hit) +10 | |
-| | Combo Bonus: Score x (1 + Combo/10) | |
-| +-----------------------------------------------------------------------+ |
-| |
-| +-----------------------------------------------------------------------+ |
-| | CONTROLS | |
-| +-----------------------------------------------------------------------+ |
-| | [F] = Red Drum (DON) [J] = Blue Drum (KA) | |
-| | [SPACE] = Confirm / Resume [UP/DOWN] = Navigate | |
-| +-----------------------------------------------------------------------+ |
-| |
-+-----------------------------------------------------------------------------+
+================================================================================
+TAIKO DRUM GAME
+================================================================================
 
-text
+[ GAME FLOW ]
 
+Title Screen --> Song Selection --> Difficulty --> Gameplay
+(UP/DOWN) (Easy/Normal/Hard/Master/Ultra) (F/J)
+
+================================================================================
+
+[ SCORING SYSTEM ]
+
+PERFECT (< 0.15 sec) = 100 points x (1 + Combo/10)
+GOOD (< 0.30 sec) = 50 points x (1 + Combo/10)
+OK (< 0.50 sec) = 10 points x (1 + Combo/10)
+MISS (> 0.50 sec) = 0 points, Combo breaks
+ROLL (each hit) = 10 points, Combo continues
+
+================================================================================
+
+[ CONTROLS ]
+
+[F] = Red Drum (DON)
+[J] = Blue Drum (KA)
+
+[SPACE] = Confirm / Continue / Resume from pause
+[UP/DOWN] = Navigate Menus
+
+================================================================================
+ > Note:The game supports 5 difficulty levels (Easy, Normal, Hard, Master, Ultra) and dynamic BPM changes within a single song.
 ## Purpose
 
 ### Software Development Process Type
