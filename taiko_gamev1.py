@@ -429,54 +429,6 @@ def show_game_start_screen():
                 sys.exit()
         clock.tick(60)
 
-# ==================== 暫停畫面 ====================
-def show_pause_screen():
-    """顯示暫停畫面，返回是否應該繼續遊戲"""
-    paused = True
-    while paused:
-        screen.fill(BLACK)
-        draw_centered_text(screen, "GAME PAUSED", font_title, GOLD, 120)
-        draw_centered_text(screen, "Press P to Resume", font_medium, WHITE, 200)
-        draw_centered_text(screen, "Press ESC to Quit", font_small, LIGHT_GRAY, 250)
-        pygame.display.flip()
-        
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_p:
-                    return True  # 繼續遊戲
-                if event.key == pygame.K_ESCAPE:
-                    return False  # 退出遊戲
-        clock.tick(60)
-
-def show_resume_countdown():
-    """顯示恢復遊戲的倒數"""
-    countdown = 3
-    last_tick = pygame.time.get_ticks()
-    background = pygame.Surface((800, 400))
-    draw_gradient_rect(background, (20, 20, 40), (50, 50, 70), (0, 0, 800, 400))
-    
-    while countdown > 0:
-        current_tick = pygame.time.get_ticks()
-        if current_tick - last_tick >= 1000:
-            countdown -= 1
-            last_tick = current_tick
-        
-        screen.blit(background, (0, 0))
-        draw_centered_text(screen, "RESUMING", font_title, GOLD, 120)
-        if countdown > 0:
-            draw_centered_text(screen, str(countdown), font_large, WHITE, 200)
-        pygame.display.flip()
-        
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-        
-        clock.tick(60)
-
 # ==================== 結算畫面 ====================
 def show_result_screen(stats, score):
     exit_enabled = False
@@ -537,92 +489,75 @@ def run_game(notes, bgm_path, start_time):
     max_combo = 0
     judge_text = ""
     judge_display_time = 0
-    
     stats = {"perfect": 0, "good": 0, "ok": 0, "miss": 0, "max_combo": 0}
 
     game_bg = pygame.Surface((800, 400))
     draw_gradient_rect(game_bg, (20, 20, 40), (50, 50, 70), (0, 0, 800, 400))
 
-    pause_offset = 0
-    pause_start = 0
-    is_paused = False
-    was_focused = True
-
     running = True
     game_finished = False
 
     while running:
-        # =========================
-        # 檢查焦點丟失（自動暫停）
-        # =========================
-        current_focused = pygame.key.get_focused()
-        if not game_finished and current_focused != was_focused and not current_focused:
-            # 焦點丟失，自動暫停
-            if not is_paused:
-                is_paused = True
-                pygame.mixer.music.pause()
-                pause_start = pygame.time.get_ticks()
-        was_focused = current_focused
+        if not pygame.key.get_focused():
+            pygame.mixer.music.pause()
+            
+            paused = True
+            while paused:
+                screen.blit(game_bg, (0, 0))
+                draw_centered_text(screen, "Game Paused - Press SPACE to resume", font_medium, WHITE, 180)
+                pygame.display.flip()
+                
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+                    if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                        paused = False
+                
+                clock.tick(10)
+            
+            countdown = 3
+            last_tick = pygame.time.get_ticks()
+            while countdown > 0:
+                current_tick = pygame.time.get_ticks()
+                if current_tick - last_tick > 1000:
+                    countdown -= 1
+                    last_tick = current_tick
+                
+                screen.blit(game_bg, (0, 0))
+                pygame.draw.circle(screen, DARK_RED, (100, 200), 40)
+                pygame.draw.circle(screen, RED, (100, 200), 35)
+                pygame.draw.circle(screen, GOLD, (100, 200), 35, 2)
+                pygame.draw.circle(screen, DARK_BLUE, (100, 280), 40)
+                pygame.draw.circle(screen, BLUE, (100, 280), 35)
+                pygame.draw.circle(screen, GOLD, (100, 280), 35, 2)
+                
+                draw_centered_text(screen, str(countdown), font_title, GOLD, 180)
+                draw_centered_text(screen, "Resuming in...", font_medium, WHITE, 80)
+                
+                pygame.display.flip()
+                clock.tick(60)
+            
+            pygame.mixer.music.unpause()
+            start_time = pygame.time.get_ticks() / 1000.0 - current_time
+            continue
 
-        # =========================
-        # ⏸ 暫停畫面（手動 P 或焦點丟失）
-        # =========================
-        if is_paused and not game_finished:
-            # 顯示暫停畫面
-            screen.blit(game_bg, (0, 0))
-            draw_centered_text(screen, "GAME PAUSED", font_title, GOLD, 120)
-            draw_centered_text(screen, "Press P to Resume", font_medium, WHITE, 200)
-            draw_centered_text(screen, "Press ESC to Quit", font_small, LIGHT_GRAY, 250)
-            pygame.display.flip()
+        current_time = pygame.time.get_ticks() / 1000.0 - start_time
 
+        if not game_finished:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_p:
-                        # 恢復遊戲，顯示倒數
-                        show_resume_countdown()
-                        pygame.mixer.music.unpause()
-                        pause_end = pygame.time.get_ticks()
-                        pause_offset += (pause_end - pause_start) / 1000.0
-                        is_paused = False
-                    elif event.key == pygame.K_ESCAPE:
-                        return stats, score
-
-            clock.tick(60)
-            continue
-
-        # =========================
-        # ⏱ 正確時間
-        # =========================
-        current_time = pygame.time.get_ticks() / 1000.0 - start_time - pause_offset
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-
-            if event.type == pygame.KEYDOWN:
-                # 手動暫停（只有在遊戲未結束時）
-                if not game_finished and event.key == pygame.K_p:
-                    if not is_paused:
-                        is_paused = True
-                        pygame.mixer.music.pause()
-                        pause_start = pygame.time.get_ticks()
-                    continue
-
-                # 打擊（只在遊戲未結束且未暫停時）
-                if not game_finished and not is_paused:
                     if event.key == pygame.K_f:
                         hit_type = "red"
                     elif event.key == pygame.K_j:
                         hit_type = "blue"
                     else:
                         hit_type = None
-
+                    
                     if hit_type:
-                        # 檢查連打
                         active_roll = None
                         for note in notes:
                             if isinstance(note, RollNote) and not note.hit:
@@ -639,7 +574,6 @@ def run_game(notes, bgm_path, start_time):
                         else:
                             closest_note = None
                             closest_diff = 0.5
-                            
                             for note in notes:
                                 if isinstance(note, Note) and not note.hit and not note.missed and note.note_type == hit_type:
                                     diff = abs(current_time - note.time)
@@ -653,12 +587,10 @@ def run_game(notes, bgm_path, start_time):
                                 combo += 1
                                 if combo > max_combo:
                                     max_combo = combo
-                                
                                 if closest_note.note_type == "red":
                                     don_sound.play()
                                 else:
                                     ka_sound.play()
-                                
                                 if closest_diff < 0.15:
                                     score += 100 * (1 + combo // 10)
                                     judge_text = "PERFECT!"
@@ -676,57 +608,37 @@ def run_game(notes, bgm_path, start_time):
                                     stats["ok"] += 1
                             else:
                                 stats["miss"] += 1
-                                combo = 0
 
-        # MISS 判定
-        for note in notes:
-            if isinstance(note, Note) and not note.hit and not note.missed:
-                if current_time > note.time + 0.5:
-                    note.missed = True
-                    combo = 0
-                    stats["miss"] += 1
-        
-        # 連打完成判定
-        for note in notes:
-            if isinstance(note, RollNote) and not note.hit:
-                if note.is_done(current_time):
-                    note.hit = True
-                    if note.roll_hits > 0:
-                        score += 50 * (1 + combo // 10)
-                        stats["ok"] += 1
-
-        # =========================
-        # ⭐ 遊戲結束判定
-        # =========================
-        if not game_finished:
-            all_notes_done = all(
-                isinstance(note, (Note, RollNote)) and 
-                (note.hit or note.missed or (isinstance(note, RollNote) and note.is_done(current_time)))
-                for note in notes
-            )
-            music_ended = not pygame.mixer.music.get_busy()
+            for note in notes:
+                if isinstance(note, Note) and not note.hit and not note.missed:
+                    if current_time > note.time + 0.5:
+                        note.missed = True
+                        combo = 0
+                        stats["miss"] += 1
             
-            if all_notes_done and music_ended:
-                game_finished = True
-                stats["max_combo"] = max_combo
-                pygame.time.delay(1000)
-                running = False
+            for note in notes:
+                if isinstance(note, RollNote) and not note.hit:
+                    if note.is_done(current_time):
+                        note.hit = True
+                        if note.roll_hits > 0:
+                            score += 50 * (1 + combo // 10)
+                            stats["ok"] += 1
 
-        # =========================
-        # 🎨 畫面繪製
-        # =========================
+        else:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
         screen.blit(game_bg, (0, 0))
 
-        # 繪製太鼓
         pygame.draw.circle(screen, DARK_RED, (100, 200), 40)
         pygame.draw.circle(screen, RED, (100, 200), 35)
         pygame.draw.circle(screen, GOLD, (100, 200), 35, 2)
-
         pygame.draw.circle(screen, DARK_BLUE, (100, 280), 40)
         pygame.draw.circle(screen, BLUE, (100, 280), 35)
         pygame.draw.circle(screen, GOLD, (100, 280), 35, 2)
 
-        # 繪製音符
         for note in notes:
             if isinstance(note, RollNote) and not note.hit:
                 x = note.get_x(current_time)
@@ -761,12 +673,10 @@ def run_game(notes, bgm_path, start_time):
                     pygame.draw.circle(screen, GOLD, (int(x), y), effect_size, 3)
                     note.hit_effect -= 1
 
-        # 顯示分數和 Combo
         score_panel = pygame.Surface((180, 120))
         score_panel.set_alpha(200)
         score_panel.fill((0, 0, 0))
         screen.blit(score_panel, (5, 5))
-        
         score_text = font_medium.render(f"Score: {score}", True, GOLD)
         screen.blit(score_text, (15, 15))
         combo_text = font_medium.render(f"Combo: {combo}", True, WHITE)
@@ -775,7 +685,6 @@ def run_game(notes, bgm_path, start_time):
             max_combo_text = font_small.render(f"Max: {max_combo}", True, LIGHT_GRAY)
             screen.blit(max_combo_text, (15, 95))
 
-        # 顯示判定文字
         if judge_display_time > 0:
             elapsed = pygame.time.get_ticks() - judge_display_time
             if elapsed < 500:
@@ -785,10 +694,22 @@ def run_game(notes, bgm_path, start_time):
             else:
                 judge_display_time = 0
 
+        all_notes_done = all(
+            isinstance(note, RollNote) or note.hit or note.missed 
+            for note in notes
+        )
+        music_ended = not pygame.mixer.music.get_busy()
+
+        # 遊戲結束後即時顯示結算畫面（唔再等 5 秒）
+        if not game_finished and all_notes_done and music_ended:
+            game_finished = True
+            stats["max_combo"] = max_combo
+            show_result_screen(stats, score)
+            running = False
+
         pygame.display.flip()
         clock.tick(60)
 
-    stats["max_combo"] = max_combo
     return stats, score
 
 # ==================== 主程式 ====================

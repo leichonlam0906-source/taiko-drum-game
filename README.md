@@ -7,31 +7,74 @@ TAIKO DRUM GAME
 
 [ GAME FLOW ]
 
-Title Screen --> Song Selection --> Difficulty --> Gameplay
-(UP/DOWN) (Easy/Normal/Hard/Master/Ultra) (F/J)
+[ GAME FLOW ]
+
+Title Screen --> Song Selection --> Difficulty --> Gameplay --> Result Screen
+     ↓                ↓                  ↓            ↓              ↓
+  SPACE          UP/DOWN          Easy/Normal     F (Red)        Stats &
+                SPACE            Hard/Master     J (Blue)        Score
+                                 Ultra
+
+[ PAUSE MECHANISM ]
+
+Gameplay (Running)
+     ↓
+Press 'P' OR Window Loses Focus
+     ↓
+Pause Screen (Music Paused)
+     ↓
+Press 'P' to Resume
+     ↓
+3-Second Countdown
+     ↓
+Gameplay Resumes
+
 
 =========================================
 
 [ SCORING SYSTEM ]
 
-PERFECT (< 0.15 sec) = 100 points x (1 + Combo/10)
-GOOD (< 0.30 sec) = 50 points x (1 + Combo/10)
-OK (< 0.50 sec) = 10 points x (1 + Combo/10)
-MISS (> 0.50 sec) = 0 points, Combo breaks
-ROLL (each hit) = 10 points, Combo continues
+
+Judgment	Timing Window	Base Score	Combo Bonus
+PERFECT	< 0.15 sec	100 points	× (1 + Combo/10)
+GOOD	< 0.30 sec	50 points	× (1 + Combo/10)
+OK	< 0.50 sec	10 points	× (1 + Combo/10)
+MISS	> 0.50 sec	0 points	Combo breaks
+ROLL	During active window	10 points per hit	Combo continues
+
+Example Score Calculation:
+Combo 0: PERFECT = 100 × (1 + 0/10) = 100 points
+
+Combo 10: PERFECT = 100 × (1 + 10/10) = 200 points
+
+Combo 50: PERFECT = 100 × (1 + 50/10) = 600 points
 
 =========================================
 
 [ CONTROLS ]
 
-[F] = Red Drum (DON)
-[J] = Blue Drum (KA)
-
-[SPACE] = Confirm / Continue / Resume from pause
-[UP/DOWN] = Navigate Menus
+Key	Action
+[F]	Red Drum (DON) - Hit red notes
+[J]	Blue Drum (KA) - Hit blue notes
+[P]	Pause / Resume game
+[SPACE]	Confirm selection / Continue
+[[UP] / [DOWN]]	Navigate menus
+[ESC]	Quit to result screen (when paused)
 
 =========================================
- > Note:The game supports 5 difficulty levels (Easy, Normal, Hard, Master, Ultra) and dynamic BPM changes within a single song.
+Game Features:
+✅ 5 difficulty levels (Easy, Normal, Hard, Master, Ultra)
+
+✅ Dynamic BPM changes within a single song
+
+✅ Roll notes (long notes with multiple hits)
+
+✅ Auto-pause when window loses focus
+
+✅ Manual pause with 'P' key
+
+✅ Resume countdown (3 seconds)
+
 ## Purpose
 
 ### Software Development Process Type
@@ -47,8 +90,12 @@ This project follows an **Agile** development process.
 | Flexibility | Low | High |
 | Delivery | Single final product | Multiple working increments |
 
-This game started as a simple rhythm game and gradually added features:  
-`Basic gameplay → Scoring & Combo → Audio → BPM changes → Difficulty levels → Roll notes → Result screen → Pause & resume`
+`This game started as a simple rhythm game and gradually added features:  `
+Iteration 1: Basic gameplay → Notes scrolling, hit detection
+Iteration 2: Scoring system → Score display, combo, menus
+Iteration 3: Audio → Drum sounds, BGM, visual effects
+Iteration 4: Advanced features → BPM changes, roll notes, pause
+Iteration 5: Polish → Result screen, multiple difficulties
 
 Agile allowed me to test each feature immediately and adjust based on real feedback.
 
@@ -85,7 +132,7 @@ Since this is an individual project, **one person** handled all roles:
 | Documenter | README, comments, GitHub management |
 | Artist/Designer | UI layout, colors, effects |
 
-**Portion**: 100% completed by Leichonlam.
+**Portion**: 95% completed by Brian.5% for Jackey (add ind the Purse button)
 
 ### Schedule
 
@@ -224,3 +271,11 @@ Date: 2026
 
 Declaration
 This project was developed as a coursework submission. All assets are used for educational purposes only.
+
+Version History
+Version	Date	Changes
+1.0	2026-04-10	Initial release: Basic gameplay, scoring, 3 difficulties
+1.1	2026-04-12	Added BPM changes, 5 difficulties
+1.2	2026-04-14	Added Roll notes, improved visuals
+1.3	2026-04-16	Added Pause system (P key + auto-pause)
+1.4	2026-04-17	Combined pause mechanisms, final polish
