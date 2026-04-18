@@ -279,3 +279,15 @@ Version	Date	Changes
 1.2	2026-04-14	Added Roll notes, improved visuals
 1.3	2026-04-16	Added Pause system (P key + auto-pause)
 1.4	2026-04-17	Combined pause mechanisms, final polish
+1.5	2026-04-18	Changed controls: V/N for red, F/J for blue; 3 difficulties
+
+## ✅ Main Updates
+
+| Item | Update |
+|------|--------|
+| Difficulty | 5 → 3 (Easy, Normal, Hard) |
+| Red Button | F → **V / N** |
+| Blue Button | J → **F / J** |
+| Controls Table | Updated |
+| File Structure | Removed Master, Ultra |
+| Version History | Added v1.5 |

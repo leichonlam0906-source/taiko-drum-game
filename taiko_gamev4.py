@@ -40,7 +40,6 @@ GRAY = (100, 100, 100)
 LIGHT_GRAY = (200, 200, 200)
 ORANGE = (255, 100, 0)
 YELLOW = (255, 255, 0)
-ROLL_YELLOW = (255, 200, 0)
 
 # ==================== 字體設定 ====================
 font_title = pygame.font.SysFont("PMingLiU", 72)
@@ -116,8 +115,7 @@ def load_levels():
             "difficulties": {}
         }
         
-        # 改為 3 個難度
-        difficulties = ["Easy", "Normal", "Hard"]
+        difficulties = ["Easy", "Normal", "Hard", "Master", "Ultra"]
         for diff in difficulties:
             diff_path = os.path.join(folder_path, f"{diff}.json")
             if os.path.exists(diff_path):
@@ -132,22 +130,6 @@ def load_levels():
 
 # ==================== 音符類 ====================
 class Note:
-    def __init__(self, time, note_type, start_x=800, target_x=100, speed=300):
-        self.time = time
-        self.note_type = note_type
-        self.start_x = start_x
-        self.target_x = target_x
-        self.speed = speed
-        self.hit = False
-        self.missed = False
-        self.hit_effect = 0
-
-    def get_x(self, current_time):
-        time_left = self.time - current_time
-        x = self.target_x + time_left * self.speed
-        return x
-
-class RollNote:
     def __init__(self, start_time, end_time, start_x=800, target_x=100, speed=300):
         self.start_time = start_time
         self.end_time = end_time
@@ -157,19 +139,23 @@ class RollNote:
         self.hit = False
         self.missed = False
         self.roll_hits = 0
+        duration = end_time - start_time
+        self.bar_length = int(50 + duration * 100)
+        self.bar_length = min(self.bar_length, 300)
 
     def get_x(self, current_time):
         time_left = self.start_time - current_time
         x = self.target_x + time_left * self.speed
         return x
 
-    def get_right_x(self, current_time):
-        time_left = self.end_time - current_time
-        x = self.target_x + time_left * self.speed
-        return x
-
     def is_active(self, current_time):
-        return self.start_time <= current_time <= self.end_time
+        """當長條嘅任何部份到達目標區（紅/藍鼓）時就 active"""
+        x = self.get_x(current_time)
+        half_length = self.bar_length // 2
+        left_x = x - half_length
+        right_x = x + half_length
+        # 目標區大約喺 x=100 附近
+        return (left_x <= self.target_x + 30 and right_x >= self.target_x - 30)
 
     def is_done(self, current_time):
         return current_time > self.end_time
@@ -223,7 +209,7 @@ def init_game(level_data, difficulty):
     tempo_changes = level_data.get("tempo_changes", [[1.0, 120]])
     
     beat_to_time = create_beat_to_time_function(tempo_changes, offset)
-    base_speed = 600 * (tempo_changes[0][1] / 120)
+    base_speed = 300 * (tempo_changes[0][1] / 120)
     
     notes = []
     i = 0
@@ -343,13 +329,13 @@ def select_song(levels_dict):
                     return song_list[selected_index]
         clock.tick(60)
 
-# ==================== 難度選擇畫面（3 個難度）====================
+# ==================== 難度選擇畫面 ====================
 def select_difficulty():
-    difficulties = ["Easy", "Normal", "Hard"]
+    difficulties = ["Easy", "Normal", "Hard", "Master", "Ultra"]
     selected_index = 1
     background = pygame.Surface((800, 400))
     draw_gradient_rect(background, (30, 30, 50), (60, 60, 90), (0, 0, 800, 400))
-    diff_colors = [(100, 200, 100), (255, 200, 50), (255, 80, 80)]
+    diff_colors = [(100, 200, 100), (224, 81, 54), (255, 200, 50), (255, 80, 80), (200, 50, 200)]
     
     while True:
         screen.blit(background, (0, 0))
@@ -357,10 +343,10 @@ def select_difficulty():
         draw_rounded_rect(screen, DARK_BLUE, title_rect, 15)
         draw_centered_text_in_rect(screen, "SELECT DIFFICULTY", font_large, GOLD, title_rect)
         
-        start_y = 130
+        start_y = 100
         for i, diff in enumerate(difficulties):
-            y = start_y + i * 60
-            item_rect = (250, y - 20, 300, 50)
+            y = start_y + i * 45
+            item_rect = (250, y - 15, 300, 38)
             bg_color = (80, 50, 50) if i == selected_index else (50, 50, 70)
             draw_rounded_rect(screen, bg_color, item_rect, 10)
             if i == selected_index:
@@ -428,7 +414,29 @@ def show_game_start_screen():
         clock.tick(60)
 
 # ==================== 暫停畫面 ====================
+def show_pause_screen():
+    """顯示暫停畫面，返回是否應該繼續遊戲"""
+    paused = True
+    while paused:
+        screen.fill(BLACK)
+        draw_centered_text(screen, "GAME PAUSED", font_title, GOLD, 120)
+        draw_centered_text(screen, "Press P to Resume", font_medium, WHITE, 200)
+        draw_centered_text(screen, "Press ESC to Quit", font_small, LIGHT_GRAY, 250)
+        pygame.display.flip()
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_p:
+                    return True  # 繼續遊戲
+                if event.key == pygame.K_ESCAPE:
+                    return False  # 退出遊戲
+        clock.tick(60)
+
 def show_resume_countdown():
+    """顯示恢復遊戲的倒數"""
     countdown = 3
     last_tick = pygame.time.get_ticks()
     background = pygame.Surface((800, 400))
@@ -528,15 +536,23 @@ def run_game(notes, bgm_path, start_time):
     game_finished = False
 
     while running:
+        # =========================
+        # 檢查焦點丟失（自動暫停）
+        # =========================
         current_focused = pygame.key.get_focused()
         if not game_finished and current_focused != was_focused and not current_focused:
+            # 焦點丟失，自動暫停
             if not is_paused:
                 is_paused = True
                 pygame.mixer.music.pause()
                 pause_start = pygame.time.get_ticks()
         was_focused = current_focused
 
+        # =========================
+        # ⏸ 暫停畫面（手動 P 或焦點丟失）
+        # =========================
         if is_paused and not game_finished:
+            # 顯示暫停畫面
             screen.blit(game_bg, (0, 0))
             draw_centered_text(screen, "GAME PAUSED", font_title, GOLD, 120)
             draw_centered_text(screen, "Press P to Resume", font_medium, WHITE, 200)
@@ -549,6 +565,7 @@ def run_game(notes, bgm_path, start_time):
                     sys.exit()
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_p:
+                        # 恢復遊戲，顯示倒數
                         show_resume_countdown()
                         pygame.mixer.music.unpause()
                         pause_end = pygame.time.get_ticks()
@@ -560,6 +577,9 @@ def run_game(notes, bgm_path, start_time):
             clock.tick(60)
             continue
 
+        # =========================
+        # ⏱ 正確時間
+        # =========================
         current_time = pygame.time.get_ticks() / 1000.0 - start_time - pause_offset
 
         for event in pygame.event.get():
@@ -568,6 +588,7 @@ def run_game(notes, bgm_path, start_time):
                 sys.exit()
 
             if event.type == pygame.KEYDOWN:
+                # 手動暫停（只有在遊戲未結束時）
                 if not game_finished and event.key == pygame.K_p:
                     if not is_paused:
                         is_paused = True
@@ -575,17 +596,17 @@ def run_game(notes, bgm_path, start_time):
                         pause_start = pygame.time.get_ticks()
                     continue
 
+                # 打擊（只在遊戲未結束且未暫停時）
                 if not game_finished and not is_paused:
-                    # 紅色：V 或 N
-                    if event.key == pygame.K_v or event.key == pygame.K_n:
+                    if event.key == pygame.K_f:
                         hit_type = "red"
-                    # 藍色：F 或 J
-                    elif event.key == pygame.K_f or event.key == pygame.K_j:
+                    elif event.key == pygame.K_j:
                         hit_type = "blue"
                     else:
                         hit_type = None
 
                     if hit_type:
+                        # 檢查連打
                         active_roll = None
                         for note in notes:
                             if isinstance(note, RollNote) and not note.hit:
@@ -638,9 +659,10 @@ def run_game(notes, bgm_path, start_time):
                                     judge_display_time = pygame.time.get_ticks()
                                     stats["ok"] += 1
                             else:
-                                # 空打：只計 miss，唔斷 combo
                                 stats["miss"] += 1
+                                combo = 0
 
+        # MISS 判定
         for note in notes:
             if isinstance(note, Note) and not note.hit and not note.missed:
                 if current_time > note.time + 0.5:
@@ -648,6 +670,7 @@ def run_game(notes, bgm_path, start_time):
                     combo = 0
                     stats["miss"] += 1
         
+        # 連打完成判定
         for note in notes:
             if isinstance(note, RollNote) and not note.hit:
                 if note.is_done(current_time):
@@ -656,6 +679,9 @@ def run_game(notes, bgm_path, start_time):
                         score += 50 * (1 + combo // 10)
                         stats["ok"] += 1
 
+        # =========================
+        # ⭐ 遊戲結束判定
+        # =========================
         if not game_finished:
             all_notes_done = all(
                 isinstance(note, (Note, RollNote)) and 
@@ -670,42 +696,41 @@ def run_game(notes, bgm_path, start_time):
                 pygame.time.delay(1000)
                 running = False
 
+        # =========================
+        # 🎨 畫面繪製
+        # =========================
         screen.blit(game_bg, (0, 0))
 
-        pygame.draw.circle(screen, DARK_BLUE, (100, 200), 40)
-        pygame.draw.circle(screen, BLUE, (100, 200), 35)
+        # 繪製太鼓
+        pygame.draw.circle(screen, DARK_RED, (100, 200), 40)
+        pygame.draw.circle(screen, RED, (100, 200), 35)
         pygame.draw.circle(screen, GOLD, (100, 200), 35, 2)
 
-        pygame.draw.circle(screen, DARK_RED, (100, 280), 40)
-        pygame.draw.circle(screen, RED, (100, 280), 35)
+        pygame.draw.circle(screen, DARK_BLUE, (100, 280), 40)
+        pygame.draw.circle(screen, BLUE, (100, 280), 35)
         pygame.draw.circle(screen, GOLD, (100, 280), 35, 2)
 
+        # 繪製音符
         for note in notes:
             if isinstance(note, RollNote) and not note.hit:
-                left_x = note.get_x(current_time)
-                right_x = note.get_right_x(current_time)
-                
-                if -100 < right_x < 900 and left_x < 900:
-                    y = 240
-                    if left_x > right_x:
-                        left_x, right_x = right_x, left_x
-                    
-                    roll_rect = pygame.Rect(int(left_x), y - 15, int(right_x - left_x), 30)
+                x = note.get_x(current_time)
+                width = note.get_width(current_time)
+                if -100 < x < 900 and width > 0:
+                    roll_rect = pygame.Rect(int(x), 220, width, 40)
                     pygame.draw.rect(screen, (255, 200, 0), roll_rect)
                     pygame.draw.rect(screen, GOLD, roll_rect, 3)
-                    
-                    hits_text = font_small.render(str(note.roll_hits), True, BLACK)
-                    hits_rect = hits_text.get_rect(center=(int((left_x + right_x) // 2), y))
-                    screen.blit(hits_text, hits_rect)
+                    roll_text = font_small.render("ROLL", True, BLACK)
+                    text_rect = roll_text.get_rect(center=(int(x) + width//2, 240))
+                    screen.blit(roll_text, text_rect)
             elif isinstance(note, Note) and not note.hit and not note.missed:
                 x = note.get_x(current_time)
                 if -100 < x < 900:
                     if note.note_type == "red":
                         color = RED
-                        y = 280
+                        y = 200
                     else:
                         color = BLUE
-                        y = 200
+                        y = 280
                     pygame.draw.circle(screen, GOLD, (int(x), y), 33)
                     pygame.draw.circle(screen, color, (int(x), y), 30)
             
@@ -713,13 +738,14 @@ def run_game(notes, bgm_path, start_time):
                 x = note.get_x(current_time)
                 if -100 < x < 900:
                     if note.note_type == "red":
-                        y = 280
-                    else:
                         y = 200
+                    else:
+                        y = 280
                     effect_size = 45 + (10 - note.hit_effect) * 2
                     pygame.draw.circle(screen, GOLD, (int(x), y), effect_size, 3)
                     note.hit_effect -= 1
 
+        # 顯示分數和 Combo
         score_panel = pygame.Surface((180, 120))
         score_panel.set_alpha(200)
         score_panel.fill((0, 0, 0))
@@ -733,6 +759,7 @@ def run_game(notes, bgm_path, start_time):
             max_combo_text = font_small.render(f"Max: {max_combo}", True, LIGHT_GRAY)
             screen.blit(max_combo_text, (15, 95))
 
+        # 顯示判定文字
         if judge_display_time > 0:
             elapsed = pygame.time.get_ticks() - judge_display_time
             if elapsed < 500:
