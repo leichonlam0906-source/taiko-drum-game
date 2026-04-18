@@ -54,8 +54,8 @@ Combo 50: PERFECT = 100 × (1 + 50/10) = 600 points
 [ CONTROLS ]
 
 Key	Action
-[F]	Red Drum (DON) - Hit red notes
-[J]	Blue Drum (KA) - Hit blue notes
+[[V]/[N]]	Red Drum (DON) - Hit red notes
+[[J]/[F]]	Blue Drum (KA) - Hit blue notes
 [P]	Pause / Resume game
 [SPACE]	Confirm selection / Continue
 [[UP] / [DOWN]]	Navigate menus
@@ -63,7 +63,7 @@ Key	Action
 
 =========================================
 Game Features:
-✅ 5 difficulty levels (Easy, Normal, Hard, Master, Ultra)
+✅ 3 difficulty levels (Easy, Normal, Hard)
 
 ✅ Dynamic BPM changes within a single song
 
@@ -122,7 +122,7 @@ The project was developed in **5 iterations**:
 
 ### Members (Roles & Responsibilities)
 
-Since this is an individual project, **one person** handled all roles:
+Since this is an individual project, **two person** handled all roles:
 
 | Role | Responsibility |
 |------|----------------|
@@ -132,7 +132,7 @@ Since this is an individual project, **one person** handled all roles:
 | Documenter | README, comments, GitHub management |
 | Artist/Designer | UI layout, colors, effects |
 
-**Portion**: 95% completed by Brian.5% for Jackey (add ind the Purse button)
+**Portion**: 95% completed by Brian.10% for Jackey (add ind the Purse button+note making (hard))
 
 ### Schedule
 
