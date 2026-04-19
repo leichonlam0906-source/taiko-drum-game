@@ -4,9 +4,6 @@
 
 TAIKO DRUM GAME
 
-
-[ GAME FLOW ]
-
 [ GAME FLOW ]
 
 Title Screen --> Song Selection --> Difficulty --> Gameplay --> Result Screen
@@ -75,6 +72,12 @@ Game Features:
 
 ✅ Resume countdown (3 seconds)
 
+## Demonstration Video
+
+[![Taiko Drum Game Gameplay](https://img.youtube.com/vi/mmCSxzx5FAc/0.jpg)](https://youtu.be/mmCSxzx5FAc)
+
+Click the image above or [click here](https://youtu.be/mmCSxzx5FAc) to watch the gameplay demo.
+
 ## Purpose
 
 ### Software Development Process Type
@@ -132,7 +135,7 @@ Since this is an individual project, **two person** handled all roles:
 | Documenter | README, comments, GitHub management |
 | Artist/Designer | UI layout, colors, effects |
 
-**Portion**: 95% completed by Brian.10% for Jackey (add ind the Purse button+note making (hard))
+**Portion**: 90% completed by Brian.10% for Jackey (add ind the Purse button+note making (hard))
 
 ### Schedule
 
@@ -182,7 +185,7 @@ This allows variable BPM within a single song.
 - Each hit gives +10 points, no penalty for missing
 - Visual: yellow bar that grows longer as time progresses
 
-### Current Status of Your Software
+### Current Status of Our Software
 
 ✅ **Fully functional pilot version**
 
