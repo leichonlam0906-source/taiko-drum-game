@@ -217,6 +217,14 @@ This allows variable BPM within a single song.
 
 ## Installation
 
+## Download EXE (No Python Required)
+
+If you just want to play the game without installing Python, download the executable from the link below:
+
+[Download taiko_game.exe](https://github.com/leichonlam0906-source/taiko-drum-game/releases/download/v1.5/taiko_game.exe)
+
+> **Note:** Make sure the `sounds/`, `bgm/`, `songs/`, and `levels/` folders are in the same directory as the `.exe` file.
+
 ### Prerequisites
 - Python 3.12+
 - pip
